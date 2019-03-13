@@ -2,26 +2,30 @@ package dbService;
 
 import dbService.dao.UsersDAO;
 import dbService.dataSets.UsersDataSet;
-import org.h2.jdbcx.JdbcDataSource;
 
 import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-/**
- * @author v.chibrikov
- *         <p>
- *         Пример кода для курса на https://stepic.org/
- *         <p>
- *         Описание курса и лицензия: https://github.com/vitaly-chibrikov/stepic_java_webserver
- */
+
 public class DBService {
+    private static volatile DBService instance;
     private final Connection connection;
     private final UsersDAO usersDAO;
 
-    public DBService(Connection connection) {
-        this.connection = connection; //= getH2Connection();
-        usersDAO = new UsersDAO(connection);
+
+    public static DBService getInstance(Connection connection) {
+        if (instance == null) {
+            synchronized (DBService.class) {
+                if (instance == null) {
+                    instance = new DBService(connection);
+                }
+            }
+        }
+        return instance;
+    }
+
+    private DBService(Connection connection) {
+        this.connection = connection;
+        usersDAO = UsersDAO.getInstance(connection);
     }
 
     public UsersDataSet getUser(long id) throws DBException {

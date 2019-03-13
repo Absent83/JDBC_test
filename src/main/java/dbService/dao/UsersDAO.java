@@ -6,18 +6,25 @@ import dbService.executor.Executor;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * @author v.chibrikov
- *         <p>
- *         Пример кода для курса на https://stepic.org/
- *         <p>
- *         Описание курса и лицензия: https://github.com/vitaly-chibrikov/stepic_java_webserver
- */
-public class UsersDAO {
 
+public class UsersDAO {
+    private static volatile UsersDAO instance;
     private final Connection connection;
 
-    public UsersDAO(Connection connection) {
+
+    public static UsersDAO getInstance(Connection connection) {
+        if (instance == null) {
+            synchronized (UsersDAO.class) {
+                if (instance == null) {
+                    instance = new UsersDAO(connection);
+                }
+            }
+        }
+        return instance;
+    }
+
+
+    private UsersDAO(Connection connection) {
         this.connection = connection;
     }
 
