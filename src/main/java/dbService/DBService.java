@@ -17,14 +17,16 @@ import java.sql.SQLException;
  */
 public class DBService {
     private final Connection connection;
+    private final UsersDAO usersDAO;
 
-    public DBService() {
-        this.connection = getH2Connection();
+    public DBService(Connection connection) {
+        this.connection = connection; //= getH2Connection();
+        usersDAO = new UsersDAO(connection);
     }
 
     public UsersDataSet getUser(long id) throws DBException {
         try {
-            return (new UsersDAO(connection).get(id));
+            return (usersDAO.get(id));
         } catch (SQLException e) {
             throw new DBException(e);
         }
@@ -33,11 +35,10 @@ public class DBService {
     public long addUser(String name) throws DBException {
         try {
             connection.setAutoCommit(false);
-            UsersDAO dao = new UsersDAO(connection);
-            dao.createTable();
-            dao.insertUser(name);
+            usersDAO.createTable();
+            usersDAO.insertUser(name);
             connection.commit();
-            return dao.getUserId(name);
+            return usersDAO.getUserId(name);
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -53,9 +54,8 @@ public class DBService {
     }
 
     public void cleanUp() throws DBException {
-        UsersDAO dao = new UsersDAO(connection);
         try {
-            dao.dropTable();
+            usersDAO.dropTable();
         } catch (SQLException e) {
             throw new DBException(e);
         }
@@ -72,47 +72,5 @@ public class DBService {
         }
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    public static Connection getMysqlConnection() {
-        try {
-            DriverManager.registerDriver((Driver) Class.forName("com.mysql.jdbc.Driver").newInstance());
 
-            StringBuilder url = new StringBuilder();
-
-            url.
-                    append("jdbc:mysql://").        //db type
-                    append("localhost:").           //host name
-                    append("3306/").                //port
-                    append("db_example?").          //db name
-                    append("user=tully&").          //login
-                    append("password=tully");       //password
-
-            System.out.println("URL: " + url + "\n");
-
-            Connection connection = DriverManager.getConnection(url.toString());
-            return connection;
-        } catch (SQLException | InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static Connection getH2Connection() {
-        try {
-            String url = "jdbc:h2:./h2db";
-            String name = "tully";
-            String pass = "tully";
-
-            JdbcDataSource ds = new JdbcDataSource();
-            ds.setURL(url);
-            ds.setUser(name);
-            ds.setPassword(pass);
-
-            Connection connection = DriverManager.getConnection(url, name, pass);
-            return connection;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 }
