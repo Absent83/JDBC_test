@@ -1,21 +1,22 @@
 package main;
 
 
+import dbService.DBConnection;
 import dbService.DBException;
 import dbService.DBService;
 import dbService.dataSets.UsersDataSet;
 
-/**
- * @author v.chibrikov
- *         <p>
- *         Пример кода для курса на https://stepic.org/
- *         <p>
- *         Описание курса и лицензия: https://github.com/vitaly-chibrikov/stepic_java_webserver
- */
+import java.sql.Connection;
+
+
 public class Main {
     public static void main(String[] args) {
-        DBService dbService = new DBService();
+
+        Connection connection = DBConnection.getH2Connection();
+        DBService dbService = DBService.getInstance(connection);
+
         dbService.printConnectInfo();
+
         try {
             long userId = dbService.addUser("tully");
             System.out.println("Added user id: " + userId);
